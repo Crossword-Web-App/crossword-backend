@@ -1,17 +1,42 @@
 # highest-level crossword class, encompasses all
 
 class Crossword:
-    
+
     def __init__(self):
         # doesn't know the board, just the words
         self.words = Word_Storage()
         # doesn't know the words, just the letters and blank spots
         self.board = Board_Storage()
 
-    
+    def get_word_direction(self, word):
+        if word[0][0] == word[1][0]:
+            return 'across'
+        return 'down'
+
+    def get_letter_at_coords(self, coords):
+        return self.board.cw_dict[coords[0]][coords[1]]
+
+    def find_available_sequences_for_word(self, word):
+        valid_sequences = []
+        candidate_sequences = self.board.get_sequences(len(word))
+
+        # TODO: create ranking system for best placement
+        for sequence in candidate_sequences:
+            valid_word = True
+            idx = 0
+            while idx < len(sequence) and valid_word:
+                if self.get_letter_at_coords(sequence[idx]) != '' and self.get_letter_at_coords(sequence[idx]) != word[idx]:
+                    valid_word = False
+                idx += 1
+            if valid_word:
+                valid_sequences.append(sequence)
+
+        return valid_sequences
+
+
     # put word in both word_storage and crossword_dict
     def insert_word(self, word, coords, direction):
-        
+
         # adding to word storage
         self.words.add_word(word, coords, direction)
 
@@ -43,17 +68,17 @@ class Crossword:
                     new_row += " " + self.board.cw_dict[column][row] + " "
             print(new_row, '\n')
         pass
-    
 
-class Board_Storage: 
+
+class Board_Storage:
 
     def __init__(self):
         self.cw_dict = self.setup_crossword()
         self.generate_board_with_black_squares()
         self.sequences_dict = self.setup_sequences_dict()
 
-    def setup_crossword(self):    
-        columndict = {} 
+    def setup_crossword(self):
+        columndict = {}
         for num in range(0,15):
             rowdict = {}
             for rownum in range(0,15):
@@ -69,7 +94,7 @@ class Board_Storage:
             temp = []
             end_of_word = False
             for col_idx, column in enumerate(self.cw_dict[row]):
-                if self.cw_dict[row][column] == '#':   
+                if self.cw_dict[row][column] == '#':
                     end_of_word = True
                 elif col_idx == len(self.cw_dict[row])-1:
                     temp.append((row_idx, col_idx))
@@ -90,7 +115,7 @@ class Board_Storage:
             temp = []
             end_of_word = False
             for row_idx in range(0, len(self.cw_dict)-1):
-                if self.cw_dict[row_idx][col_idx] == '#':   
+                if self.cw_dict[row_idx][col_idx] == '#':
                     end_of_word = True
                 elif row_idx == len(self.cw_dict[row])-1:
                     temp.append((row_idx, col_idx))
@@ -107,7 +132,7 @@ class Board_Storage:
                     temp.append((row_idx, col_idx))
 
         return seq_dict
-    
+
     # 'get all sequences where num of chars = x' in board
     # get_sequences(3) will return a list of every 3 sequence in the board
     def get_sequences(self, num):
@@ -116,7 +141,7 @@ class Board_Storage:
         else:
             return {}
 
-# store word by coordinates, wordid 
+# store word by coordinates, wordid
 # add 'number' as last step, once we've figured out the puzzle works
 # add_word('hey', [(0,0), (0,1), (0,2)], down)
 
@@ -169,7 +194,7 @@ class Board_Storage:
             # if something 2 up is either one or the boundary, and one up is free
             if two_up == False and one_up == True:
                 return False
-            
+
             if three_down == False and two_down == True and one_down == True:
                 return False
             if two_down == False and one_down == True:
@@ -208,12 +233,12 @@ class Board_Storage:
             else:
                 idx += 1
 
-class Word_Storage: 
+class Word_Storage:
 
     def __init__(self):
         self.across = {}
         self.down = {}
-    
+
     def add_word(self, word, cords, direction):
         if direction == 'across':
             self.across[word] = cords
